@@ -75,8 +75,11 @@ def get_company_analysis(ticker: str):
         # 取 12 期資料
         net_income = latest_12_quarters(facts, "NetIncomeLoss", True)
         revenue_ref_time = net_income.index[-1]
-        revenue = latest_12_quarters(facts, "RevenueFromContractWithCustomerExcludingAssessedTax", True)
-        if revenue.index[-1] != revenue_ref_time:
+        try:
+            revenue = latest_12_quarters(facts, "RevenueFromContractWithCustomerExcludingAssessedTax", True)
+            if revenue.index[-1] != revenue_ref_time:
+                revenue = latest_12_quarters(facts, "Revenues", True)
+        except:
             revenue = latest_12_quarters(facts, "Revenues", True)
         revenue.name = 'Revenues'
         equity = latest_12_quarters(facts, "StockholdersEquity", False)
