@@ -77,7 +77,7 @@ def get_company_analysis(ticker: str):
         revenue_ref_time = net_income.index[-1]
         try:
             revenue = latest_12_quarters(facts, "RevenueFromContractWithCustomerExcludingAssessedTax", True)
-            if revenue.index[-1] != revenue_ref_time:
+            if revenue.index[-1] != revenue_ref_time or ticker=='OSCR':
                 revenue = latest_12_quarters(facts, "Revenues", True)
         except:
             revenue = latest_12_quarters(facts, "Revenues", True)
