@@ -1,0 +1,345 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: rgb(250, 249, 245);
+    min-height: 100vh;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    background: linear-gradient(135deg, rgb(227,218,204) 0%, rgb(201,190,174) 100%);
+    border-radius: 15px;
+    text-align: center;
+    color: #5a4a3a;
+    margin-bottom: 40px;
+    padding: 40px 0;
+}
+
+.header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(90,74,58,0.2);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+.search-section {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(201,190,174,0.15);
+    margin-bottom: 30px;
+    border: 1px solid rgba(227,218,204,0.3);
+}
+
+.search-box {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+}
+
+#tickerInput {
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    border: 2px solid #e5ddd3;
+    border-radius: 10px;
+    width: 300px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    background-color: rgb(250, 249, 245);
+}
+
+#tickerInput:focus {
+    outline: none;
+    border-color: rgb(227,218,204);
+    box-shadow: 0 0 0 3px rgba(227,218,204, 0.2);
+}
+
+.analyze-btn {
+    background: linear-gradient(135deg, rgb(227,218,204) 0%, rgb(201,190,174) 100%);
+    color: #5a4a3a;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.analyze-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(201,190,174, 0.4);
+}
+
+.analyze-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    color: #7a6a58;
+    font-weight: 500;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(227,218,204,0.3);
+    border-top: 3px solid rgb(227,218,204);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    background: #fef5f5;
+    color: #c53030;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid #c53030;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.results-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(201,190,174,0.15);
+    border: 1px solid rgba(227,218,204,0.3);
+}
+
+.company-info {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(227,218,204,0.3);
+}
+
+.company-info h2 {
+    font-size: 2.5rem;
+    color: #5a4a3a;
+    margin-bottom: 5px;
+}
+
+.cik-info {
+    color: #7a6a58;
+    font-size: 0.9rem;
+}
+
+.metrics-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, rgb(250, 249, 245) 0%, #ffffff 100%);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(227,218,204,0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, rgb(227,218,204), rgb(201,190,174));
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(201,190,174,0.2);
+}
+
+.metric-card h3 {
+    font-size: 1rem;
+    color: #7a6a58;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #5a4a3a;
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: #8a7a68;
+}
+
+.dupont-section {
+    margin-bottom: 40px;
+}
+
+.dupont-section h3 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+    color: #5a4a3a;
+}
+
+.dupont-cards {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.dupont-card {
+    background: linear-gradient(135deg, rgba(227,218,204,0.3) 0%, rgba(201,190,174,0.2) 100%);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 150px;
+    border: 1px solid rgba(227,218,204,0.4);
+}
+
+.dupont-card h4 {
+    font-size: 0.9rem;
+    color: #7a6a58;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.dupont-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #5a4a3a;
+    margin-bottom: 5px;
+}
+
+.dupont-label {
+    font-size: 0.8rem;
+    color: #7a6a58;
+    opacity: 0.8;
+}
+
+.dupont-operator {
+    font-size: 2rem;
+    color: rgb(201,190,174);
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.charts-section {
+    margin-top: 40px;
+}
+
+.chart-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+    gap: 10px;
+}
+
+.tab-btn {
+    background: rgba(250, 249, 245, 0.8);
+    border: 1px solid rgba(227,218,204,0.5);
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #7a6a58;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, rgb(227,218,204) 0%, rgb(201,190,174) 100%);
+    color: #5a4a3a;
+    border-color: transparent;
+}
+
+.tab-btn:not(.active):hover {
+    background: rgba(227,218,204,0.2);
+}
+
+.chart-container {
+    background: rgba(250, 249, 245, 0.5);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid rgba(227,218,204,0.3);
+    height: 400px;
+}
+
+.chart-container canvas {
+    max-height: 350px !important;
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .search-box {
+        flex-direction: column;
+    }
+    
+    #tickerInput {
+        width: 100%;
+    }
+    
+    .metrics-cards {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .dupont-cards {
+        flex-direction: column;
+    }
+    
+    .dupont-operator {
+        transform: rotate(90deg);
+        margin: 10px 0;
+    }
+    
+    .chart-tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tab-btn {
+        width: 200px;
+        text-align: center;
+    }
+}

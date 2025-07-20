@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEC財務指標分析系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>SEC財務指標分析系統</h1>
+            <p class="subtitle">美股上市公司財務分析(不含金融股)</p>
+        </header>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="tickerInput" placeholder="輸入美股代號 (例: AAPL)" maxlength="10">
+                <button id="analyzeBtn" class="analyze-btn">分析</button>
+            </div>
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <span>正在獲取資料...</span>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="company-info" id="companyInfo">
+                <h2 id="companyTicker"></h2>
+                <span class="cik-info" id="cikInfo"></span>
+            </div>
+
+			<!-- 優化後的指標卡片區塊 -->
+			<div class="metrics-cards">
+				<div class="metric-card-container">
+					<div class="metric-card flip-card" data-metric="roe">
+						<div class="flip-card-inner">
+							<div class="flip-card-front">
+								<h3>ROE</h3>
+								<div class="metric-value" id="roeValue">--</div>
+								<div class="metric-label">股東權益報酬率</div>
+								<div class="flip-hint">點擊查看詳細說明</div>
+							</div>
+							<div class="flip-card-back">
+								<div class="back-header">
+									<div class="back-title">ROE 觀察重點</div>
+									<div class="formula">淨利 / 股東權益</div>
+								</div>
+								<div class="back-content">
+									<div class="main-description">
+										巴菲特核心指標，代表公司用股東資金的獲利效率
+									</div>
+									<div class="key-points">
+										<div class="point">• 總資產週轉率（營運效率）</div>
+										<div class="point">• 權益乘數（財務槓桿）</div>
+									</div>
+									<div class="insight-text">
+										判斷高ROE來源：營運實力vs借貸槓桿
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="metric-card-container">
+					<div class="metric-card flip-card" data-metric="roa">
+						<div class="flip-card-inner">
+							<div class="flip-card-front">
+								<h3>ROA</h3>
+								<div class="metric-value" id="roaValue">--</div>
+								<div class="metric-label">總資產報酬率</div>
+								<div class="flip-hint">點擊查看詳細說明</div>
+							</div>
+							<div class="flip-card-back">
+								<div class="back-header">
+									<div class="back-title">ROA 觀察重點</div>
+									<div class="formula">淨利 / 總資產</div>
+								</div>
+								<div class="back-content">
+									<div class="main-description">
+										全部資產創造利潤的能力，重資產行業（如製造、地產）關鍵指標
+									</div>
+									<div class="insight-text">
+										跨公司營運效率比較，不受股權結構影響
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="metric-card-container">
+					<div class="metric-card flip-card" data-metric="roic">
+						<div class="flip-card-inner">
+							<div class="flip-card-front">
+								<h3>ROIC</h3>
+								<div class="metric-value" id="roicValue">--</div>
+								<div class="metric-label">投入資本報酬率</div>
+								<div class="flip-hint">點擊查看詳細說明</div>
+							</div>
+							<div class="flip-card-back">
+								<div class="back-header">
+									<div class="back-title">ROIC 觀察重點</div>
+									<div class="formula">稅後營業利益 / 實際投入資本</div>
+								</div>
+								<div class="back-content">
+									<div class="main-description">
+										實際營運資本獲利效率，資本配置關鍵指標
+									</div>
+									<div class="insight-text">
+										跨產業比較利器，特別適合資本密集型企業
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="metric-card-container">
+					<div class="metric-card flip-card" data-metric="roce">
+						<div class="flip-card-inner">
+							<div class="flip-card-front">
+								<h3>ROCE</h3>
+								<div class="metric-value" id="roceValue">--</div>
+								<div class="metric-label">使用資本報酬率</div>
+								<div class="flip-hint">點擊查看詳細說明</div>
+							</div>
+							<div class="flip-card-back">
+								<div class="back-header">
+									<div class="back-title">ROCE 觀察重點</div>
+									<div class="formula">EBIT / (總資產 - 流動負債)</div>
+								</div>
+								<div class="back-content">
+									<div class="main-description">
+										整體資本運用效率，包含所有資金來源
+									</div>
+									<div class="insight-text">
+										比ROE更全面，適合高負債及資本密集產業
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>		
+
+
+            <!-- 杜邦分析 -->
+            <div class="dupont-section">
+                <h3>杜邦分析三因子</h3>
+                <div class="dupont-cards">
+                    <div class="dupont-card">
+                        <h4>淨利率</h4>
+                        <div class="dupont-value" id="npmValue">--</div>
+                        <div class="dupont-label">獲利能力</div>
+                    </div>
+                    <div class="dupont-operator">×</div>
+                    <div class="dupont-card">
+                        <h4>總資產週轉率</h4>
+                        <div class="dupont-value" id="tatValue">--</div>
+                        <div class="dupont-label">營運效率</div>
+                    </div>
+                    <div class="dupont-operator">×</div>
+                    <div class="dupont-card">
+                        <h4>權益乘數</h4>
+                        <div class="dupont-value" id="emValue">--</div>
+                        <div class="dupont-label">財務槓桿</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 趨勢圖表 -->
+            <div class="charts-section">
+                <div class="chart-tabs">
+                    <button class="tab-btn active" data-tab="profitability">獲利能力指標</button>
+                    <button class="tab-btn" data-tab="dupont">杜邦分析因子</button>
+                </div>
+                
+                <div class="chart-container" id="profitabilityChart">
+                    <canvas id="profitabilityCanvas"></canvas>
+                </div>
+                
+                <div class="chart-container" id="dupontChart" style="display: none;">
+                    <canvas id="dupontCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
