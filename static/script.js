@@ -1,5 +1,6 @@
 let profitabilityChart = null;
 let dupontChart = null;
+let stockChart = null; // 新增股價圖表變數
 
 document.addEventListener('DOMContentLoaded', function() {
     const tickerInput = document.getElementById('tickerInput');
@@ -25,35 +26,40 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function analyzeStock() {
         const ticker = tickerInput.value.trim().toUpperCase();
-        
         if (!ticker) {
             showError('請輸入股票代號');
             return;
         }
-        
-        // 重置狀態
+    
         hideError();
         hideResults();
         showLoading();
         analyzeBtn.disabled = true;
-        
-        // 發送請求
-        fetch('/analyze', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ticker: ticker })
-        })
-        .then(response => response.json())
-        .then(data => {
+    
+        // 同時發送財務分析和股價資料請求
+        Promise.all([
+            fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: ticker })
+            }).then(response => response.json()),
+            
+            fetch('/stock-price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: ticker })
+            }).then(response => response.json())
+        ])
+        .then(([financialData, priceData]) => {
             hideLoading();
             analyzeBtn.disabled = false;
             
-            if (data.success) {
-                displayResults(data);
+            if (financialData.success && priceData.success) {
+                displayResults(financialData);
+                createStockChart(priceData); // 創建股價圖表
             } else {
-                showError(data.error || '分析失敗，請稍後再試');
+                const error = !financialData.success ? financialData.error : priceData.error;
+                showError(error || '分析失敗，請稍後再試');
             }
         })
         .catch(error => {
@@ -63,7 +69,121 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
         });
     }
-
+    
+    // 新增創建股價圖表函數
+    function createStockChart(data) {
+        if (stockChart) {
+            stockChart.destroy();
+        }
+    
+        var dataPoints1 = [], dataPoints2 = [], dataPoints3 = [];
+        
+        // 處理價格資料 (K線圖)
+        data.price_data.forEach(item => {
+            const date = new Date(item.date);
+            dataPoints1.push({
+                x: date,
+                y: [item.open, item.high, item.low, item.close],
+                color: item.open < item.close ? "#28a745" : "#dc3545"
+            });
+        });
+        
+        // 處理成交量資料
+        data.volume_data.forEach((item, index) => {
+            const date = new Date(item.date);
+            const priceItem = data.price_data[index];
+            dataPoints2.push({
+                x: date,
+                y: item.volume,
+                color: priceItem.open < priceItem.close ? "#28a745" : "#dc3545"
+            });
+        });
+        
+        // 處理導航資料
+        data.navigator_data.forEach(item => {
+            const date = new Date(item.date);
+            dataPoints3.push({
+                x: date,
+                y: item.close
+            });
+        });
+    
+        stockChart = new CanvasJS.StockChart("stockChartContainer", {
+            exportEnabled: true,
+            theme: "light2",
+            title: {
+                text: `${data.ticker} 股價走勢圖`
+            },
+            charts: [{
+                toolTip: {
+                    shared: true
+                },
+                axisX: {
+                    lineThickness: 2,
+                    tickLength: 0,
+                    crosshair: {
+                        enabled: true,
+                        snapToDataPoint: true
+                    }
+                },
+                axisY2: {
+                    title: "股價 (USD)",
+                    prefix: "$"
+                },
+                legend: {
+                    verticalAlign: "top",
+                    horizontalAlign: "left"
+                },
+                data: [{
+                    name: "股價",
+                    yValueFormatString: "$#,###.##",
+                    axisYType: "secondary",
+                    type: "candlestick",
+                    risingColor: "#28a745",
+                    fallingColor: "#dc3545",
+                    dataPoints: dataPoints1
+                }]
+            }, {
+                height: 100,
+                toolTip: {
+                    shared: true
+                },
+                axisX: {
+                    crosshair: {
+                        enabled: true,
+                        snapToDataPoint: true
+                    }
+                },
+                axisY2: {
+                    title: "成交量",
+                    labelFormatter: function(e) {
+                        return CanvasJS.formatNumber(e.value, "##,,.##") + "M";
+                    }
+                },
+                legend: {
+                    horizontalAlign: "left"
+                },
+                data: [{
+                    axisYType: "secondary",
+                    name: "成交量",
+                    type: "column",
+                    dataPoints: dataPoints2
+                }]
+            }],
+            navigator: {
+                data: [{
+                    color: "#6c757d",
+                    dataPoints: dataPoints3
+                }],
+                slider: {
+                    minimum: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+                    maximum: new Date()
+                }
+            }
+        });
+        
+        stockChart.render();
+    }
 	// 翻轉卡片初始化函數
 	function initFlipCards() {
 		const flipCards = document.querySelectorAll('.flip-card');
@@ -295,17 +415,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function switchTab(tabName) {
-        // 更新按鈕狀態
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        
-        // 切換圖表顯示
-        document.getElementById('profitabilityChart').style.display = 
-            tabName === 'profitability' ? 'block' : 'none';
-        document.getElementById('dupontChart').style.display = 
-            tabName === 'dupont' ? 'block' : 'none';
+    
+        // 隱藏所有圖表
+        document.getElementById('profitabilityChart').style.display = 'none';
+        document.getElementById('dupontChart').style.display = 'none';
+        document.getElementById('stockPriceChart').style.display = 'none';
+    
+        // 顯示對應圖表
+        if (tabName === 'profitability') {
+            document.getElementById('profitabilityChart').style.display = 'block';
+        } else if (tabName === 'dupont') {
+            document.getElementById('dupontChart').style.display = 'block';
+        } else if (tabName === 'stock-price') {
+            document.getElementById('stockPriceChart').style.display = 'block';
+            // 重新渲染股價圖表以確保正確顯示
+            if (stockChart) {
+                setTimeout(() => stockChart.render(), 100);
+            }
+        }
     }
     
     function formatPercentage(value) {

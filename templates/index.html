@@ -6,6 +6,8 @@
     <title>SEC財務指標分析系統</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="https://cdn.canvasjs.com/canvasjs.stock.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -178,6 +180,7 @@
                 <div class="chart-tabs">
                     <button class="tab-btn active" data-tab="profitability">獲利能力指標</button>
                     <button class="tab-btn" data-tab="dupont">杜邦分析因子</button>
+					<button class="tab-btn" data-tab="stock-price">股價走勢圖</button>
                 </div>
                 
                 <div class="chart-container" id="profitabilityChart">
@@ -187,6 +190,18 @@
                 <div class="chart-container" id="dupontChart" style="display: none;">
                     <canvas id="dupontCanvas"></canvas>
                 </div>
+				<div id="profitabilityChart" class="chart-container">
+					<canvas id="profitabilityCanvas"></canvas>
+				</div>
+				
+				<div id="dupontChart" class="chart-container" style="display: none;">
+					<canvas id="dupontCanvas"></canvas>
+				</div>
+				
+				<!-- 新增股價圖表容器 -->
+				<div id="stockPriceChart" class="chart-container" style="display: none;">
+					<div id="stockChartContainer" style="height: 100%; width: 100%;"></div>
+				</div>
             </div>
         </div>
     </div>

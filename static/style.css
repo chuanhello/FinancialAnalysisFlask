@@ -598,3 +598,57 @@ body {
         font-size: 0.7rem;
     }
 }
+/* 股價圖表容器樣式 */
+#stockPriceChart {
+    background: rgba(250, 249, 245, 0.5);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid rgba(227,218,204,0.3);
+    height: 600px; /* 增加高度以容納K線圖和成交量圖 */
+}
+
+#stockChartContainer {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid rgba(227,218,204,0.2);
+}
+
+/* 頁籤按鈕樣式調整 */
+.chart-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+    gap: 10px;
+    flex-wrap: wrap; /* 新增以支援較多頁籤 */
+}
+
+.tab-btn {
+    background: rgba(250, 249, 245, 0.8);
+    border: 1px solid rgba(227,218,204,0.5);
+    padding: 12px 20px; /* 稍微縮小padding以容納更多按鈕 */
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #7a6a58;
+    font-size: 0.9rem; /* 稍微調小字體 */
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .chart-tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tab-btn {
+        width: 200px;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    
+    #stockPriceChart {
+        height: 500px;
+        padding: 15px;
+    }
+}

@@ -4,6 +4,7 @@
 from flask import Flask, render_template, request, jsonify
 import requests, json, datetime
 import pandas as pd
+import yfinance as yf
 #import numpy as np
 
 app = Flask(__name__)
@@ -141,6 +142,85 @@ def get_company_analysis(ticker: str):
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
+
+# 新增股價資料取得函數
+def get_stock_price_data(ticker: str):
+    """取得股票一年期價格和成交量資料"""
+    try:
+        # 使用 Alpha Vantage API 獲取每日股價資料
+        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}&interval=1day&apikey=HHTX99VMKPOTXD8A'
+        r = requests.get(url)
+        data = r.json()
+        data = pd.DataFrame(data['Time Series (Daily)']).T[::-1]
+        hist = data.rename(columns={'1. open': 'Open', '2. high': 'High', '3. low': 'Low', '4. close': 'Close', '5. volume': 'Volume'})
+        hist.reset_index(inplace=True)
+        hist = hist.rename(columns={'index': 'Date'})
+
+        '''
+        stock = yf.Ticker(ticker)
+        # 取得一年期資料
+        hist = stock.history(period="1y")
+        
+        # 重設索引讓Date變成欄位
+        hist.reset_index(inplace=True)
+        '''
+        # 轉換資料格式供前端使用
+        price_data = []
+        volume_data = []
+        navigator_data = []
+        
+        for _, row in hist.iterrows():
+            #date_str = row['Date'].strftime('%Y-%m-%d')
+            date_str = row['Date']  # 假設Date已經是字串格式
+            
+            # K線圖資料 (OHLC)
+            price_data.append({
+                'date': date_str,
+                'open': float(row['Open']),
+                'high': float(row['High']),
+                'low': float(row['Low']),
+                'close': float(row['Close'])
+            })
+            
+            # 成交量資料
+            volume_data.append({
+                'date': date_str,
+                'volume': int(row['Volume'])
+            })
+            
+            # Navigator資料 (收盤價)
+            navigator_data.append({
+                'date': date_str,
+                'close': float(row['Close'])
+            })
+        
+        return {
+            'success': True,
+            'ticker': ticker.upper(),
+            'price_data': price_data,
+            'volume_data': volume_data,
+            'navigator_data': navigator_data
+        }
+        
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+    
+def save_html(req_content, filename="output.html"):
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(req_content)
+
+def get_cik_from_url(cik):
+    url = f"https://data.sec.gov/submissions/CIK{str(cik).zfill(10)}.json"
+    company_filings = requests.get(url, headers=HEADERS).json()
+    company_filings_df = pd.DataFrame(company_filings["filings"]["recent"])
+    company_filings_df[company_filings_df.form == "10-Q"]
+    access_number = company_filings_df[company_filings_df.form == "10-Q"].accessionNumber.values[0].replace("-", "")
+    file_name = company_filings_df[company_filings_df.form == "10-Q"].primaryDocument.values[0]
+    url_10Qadd = f"https://www.sec.gov/Archives/edgar/data/{cik}/{access_number}/{file_name}"
+    req_content = requests.get(url_10Qadd, headers=HEADERS).content.decode("utf-8")
+    save_html(req_content, filename=f"{cik}_{file_name}.html")
+
+
 # ----------- Flask 路由 -----------
 
 @app.route('/')
@@ -154,6 +234,16 @@ def analyze():
         return jsonify({'success': False, 'error': '請輸入股票代號'})
     
     result = get_company_analysis(ticker)
+    return jsonify(result)
+
+# 新增Flask路由
+@app.route('/stock-price', methods=['POST'])
+def get_stock_price():
+    ticker = request.json.get('ticker', '').strip().upper()
+    if not ticker:
+        return jsonify({'success': False, 'error': '請輸入股票代號'})
+    
+    result = get_stock_price_data(ticker)
     return jsonify(result)
 
 if __name__ == '__main__':
